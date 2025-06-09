@@ -177,3 +177,6 @@ cython_debug/
 **.db
 **/mlruns
 **/artifacts
+**/models
+**/.prefectignore
+**/prefect.yaml
