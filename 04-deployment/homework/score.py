@@ -5,16 +5,18 @@ import argparse
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.linear_model import LinearRegression
 from prefect import task, flow
+import os
+import boto3
 
 categorical = ['PULocationID', 'DOLocationID']
 
-# @task(retries=3, retry_delay_seconds=2, log_prints=True)
+@task(retries=3, retry_delay_seconds=2, log_prints=True)
 def load_model():
     with open('model.bin', 'rb') as f_in:
         dv, model = pickle.load(f_in)
     return dv, model
 
-# @task(retries=3, retry_delay_seconds=2, log_prints=True)
+@task(retries=3, retry_delay_seconds=2, log_prints=True)
 def read_data(filename: str) -> pd.DataFrame:
     """Read data into DataFrame and filter it"""
     print(f'Reading data from {filename}')
@@ -29,7 +31,7 @@ def read_data(filename: str) -> pd.DataFrame:
     
     return df
 
-# @task(retries=3, retry_delay_seconds=2, log_prints=True)
+@task(retries=3, retry_delay_seconds=2, log_prints=True)
 def predict(df: pd.DataFrame, dv: DictVectorizer, model: LinearRegression):
     """Score the data using the model"""
     dicts = df[categorical].to_dict(orient='records')
@@ -40,7 +42,7 @@ def predict(df: pd.DataFrame, dv: DictVectorizer, model: LinearRegression):
 
     return y_pred
 
-# @task(retries=3, retry_delay_seconds=2, log_prints=True)
+@task(retries=3, retry_delay_seconds=2, log_prints=True)
 def save_results(df: pd.DataFrame, y_pred: np.ndarray, output_file: str, year: int, month: int ):
     """Save the predictions to a CSV file"""
     df['ride_id'] = f'{year:04d}/{month:02d}_' + df.index.astype('str')
@@ -55,7 +57,15 @@ def save_results(df: pd.DataFrame, y_pred: np.ndarray, output_file: str, year: i
     )
     print(f'Results saved to {output_file}')
 
-# @flow(name="score_taxi_data")
+@task(retries=3, retry_delay_seconds=2, log_prints=True)
+def upload_to_s3(output_file: str):
+    """Upload the results to S3"""
+    s3_client = boto3.client('s3')
+    bucket_name = 'mlops-course-2025'
+    s3_client.upload_file(output_file, bucket_name, output_file)
+    
+
+@flow(name="score_taxi_data")
 def run(args):
     """Main function to run the scoring process"""
     year = args.year
@@ -67,6 +77,7 @@ def run(args):
     df = read_data(input_file)
     y_pred = predict(df, dv, model)
     save_results(df, y_pred, output_file, year, month)
+    upload_to_s3(output_file)
 
 def parse_args():
     """Parse command line arguments"""
