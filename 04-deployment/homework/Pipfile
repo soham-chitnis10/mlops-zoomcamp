@@ -6,9 +6,13 @@ name = "pypi"
 [packages]
 scikit-learn = "==1.5.0"
 pandas = "*"
+numpy = "==2.1.0"
 pyarrow = "*"
+prefect = "==3.4.5"
+async-timeout = "*"
+tomli = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.12"
+python_version = "3.10.13"

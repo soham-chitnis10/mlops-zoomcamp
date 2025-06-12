@@ -4,6 +4,7 @@ import numpy as np
 import argparse
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.linear_model import LinearRegression
+from prefect import task, flow
 
 categorical = ['PULocationID', 'DOLocationID']
 
@@ -54,6 +55,7 @@ def save_results(df: pd.DataFrame, y_pred: np.ndarray, output_file: str, year: i
     )
     print(f'Results saved to {output_file}')
 
+# @flow(name="score_taxi_data")
 def run(args):
     """Main function to run the scoring process"""
     year = args.year
