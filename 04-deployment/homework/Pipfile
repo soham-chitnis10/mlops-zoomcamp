@@ -11,6 +11,7 @@ pyarrow = "*"
 prefect = "==3.4.5"
 async-timeout = "*"
 tomli = "*"
+prefect-aws = "*"
 
 [dev-packages]
 
