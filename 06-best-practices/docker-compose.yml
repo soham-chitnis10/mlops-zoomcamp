@@ -1,0 +1,9 @@
+services:
+  localstack:
+    image: localstack/localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=s3
+      - INPUT_FILE_PATTERN="s3://nyc-duration/yellow_tripdata_{year:04d}-{month:02d}.parquet"
+      - OUTPUT_FILE_PATTERN="s3://nyc-duration/yellow_tripdata_{year:04d}-{month:02d}_predictions.parquet"
